@@ -4,6 +4,7 @@
 #include<fstream>
 #include<algorithm>
 #include<vector>
+#include<string>
 
 using namespace std;
 
@@ -143,7 +144,7 @@ public:
 
     void genSudoGame1(const char* endGamePath, int n) {
         ifstream file;
-        file.open("endGame.txt", ios::in);
+        file.open(endGamePath, ios::in);
         char* game = new char[n * 81+1];
         file >> game;
         fstream outfile;
@@ -166,19 +167,12 @@ public:
             }
             n--;
         }
-        for (int i = 0;i < 20 * 81;i++) {
-            if (i % 9 == 0)
-                cout << endl;
-            if (i % 81 == 0)
-                cout << endl;
-            cout << game[i] << " ";
-        }
         outfile << game;
         outfile.close();
     }
     void genSudoGame2(const char* endGamePath, int n) {
         ifstream file;
-        file.open("endGame.txt", ios::in);
+        file.open(endGamePath, ios::in);
         char* game = new char[n * 81 + 1];
         file >> game;
         fstream outfile;
@@ -204,19 +198,12 @@ public:
             }
             n--;
         }
-        for (int i = 0;i < 20 * 81;i++) {
-            if (i % 9 == 0)
-                cout << endl;
-            if (i % 81 == 0)
-                cout << endl;
-            cout << game[i] << " ";
-        }
         outfile << game;
         outfile.close();
     }
     void genSudoGame3(const char* endGamePath, int n) {
         ifstream file;
-        file.open("endGame.txt", ios::in);
+        file.open(endGamePath, ios::in);
         char* game = new char[n * 81 + 1];
         file >> game;
         fstream outfile;
@@ -245,13 +232,6 @@ public:
             }
             n--;
         }
-        for (int i = 0;i < 20 * 81;i++) {
-            if (i % 9 == 0)
-                cout << endl;
-            if (i % 81 == 0)
-                cout << endl;
-            cout << game[i] << " ";
-        }
         outfile << game;
         outfile.close();
     }
@@ -276,6 +256,35 @@ public:
             default:
                 cout << "args level error!" << endl;
         }   
+    }
+
+    void genSudoGameWithHollowNum(const char* endGamePath,int n,int _min, int _max) {
+        /*
+         * 生成n个挖空数在_min~_max之间的数独游戏并存放到文件中。这里没有行/列/宫的挖空数要求，只有总体要求。
+         * endGamePath:存放数独终局的文件路径
+         * n:生成数独游戏的数目
+         * _min:挖空数最小值
+         * _max:挖空数最大值
+         */
+        ifstream file;
+        file.open(endGamePath, ios::in);
+        char* game = new char[n * 81 + 1];
+        file >> game;
+        fstream outfile;
+        outfile.open("game.txt", ios::out);
+        srand((unsigned)time(NULL));
+        for (int k = 0;k < n;k++) {
+            int hollow_num = (rand() % (_max - _min + 1)) + _min;
+            for (int i = 0;i < hollow_num;i++) {
+                int x = rand() % 81;
+                while (game[k * 81 + x] == '_') {
+                    x = rand() % 81;
+                }
+                game[k * 81 + x] = '_';
+            }
+        }
+        outfile << game;
+        outfile.close();
     }
 
     void input()
@@ -308,7 +317,7 @@ public:
         }
     }
 
-    void print_endGame() {
+    void print_endGame(int n) {
         /*
         打印数独终局
         */
@@ -323,7 +332,7 @@ public:
         file.open("endGame.txt", ios::in);
         char buf[100000] = { 0 };
         file >> buf;
-        for (int i = 0;i < 20 * 81;i++) {
+        for (int i = 0;i < n * 81;i++) {
             if (i % 9 == 0)
                 cout << endl;
             if (i % 81 == 0)
@@ -332,7 +341,7 @@ public:
         }
     }
 
-    void print_game() {
+    void print_game(int n) {
         /*
         打印数独游戏棋盘
         */
@@ -340,7 +349,7 @@ public:
         file.open("game.txt", ios::in);
         char buf[100000] = { 0 };
         file >> buf;
-        for (int i = 0;i < 20 * 81;i++) {
+        for (int i = 0;i < n * 81;i++) {
             if (i % 9 == 0)
                 cout << endl;
             if (i % 81 == 0)
@@ -385,24 +394,50 @@ public:
     }
 };
 
-int main() {
+int main(int argc,char* argv[]) {
     sudokuboard sudo;
-    int arr[9] = { 1,2,3,4,5,6,7,8,9 };
-   /* sudo.genRowIndex();
-    sudo.produce_sudo(20);*/
-    sudo.print_endGame();
-    sudo.genSudoGame("endGame.txt", 20, 3);
-    //sudo.print_game();
-    //int result[9];
-    //for (int i = 0;i < sudo.rst.size();i++) {
-    //    vector<int>temp = sudo.rst[i];
-    //    /*for (int j = 0;j < 9;j++) {
-    //        cout << temp[j] << " ";
-    //    }cout << endl;*/
-    //    std::copy(temp.begin(),temp.end(),result);
-    //    //memcpy(result, &temp[0], temp.size() * sizeof(temp[0]));
-    //    for (int j = 0;j < 9;j++) {
-    //        cout << temp[j] << " ";
-    //    }cout << endl;
-    //}
+    //命令行参数argv[1]有3种类型：-c,-s,-n。
+    if (argv[1] == NULL) {
+        cout << "args error!";
+        return 0;
+    }
+    else if (strcmp(argv[1],"-c")==0) {
+        //eg. sudoku.exe -c 20 表示生成20个数独终盘
+        string str = argv[2];
+        int n = stoi(str);
+        sudo.genRowIndex();
+        sudo.produce_sudo(n);
+        sudo.print_endGame(n);
+    }
+    else if (strcmp(argv[1],"-s")==0) {
+        //eg. sudoku.exe -s game.txt 表示从game.txt读取若干个数独游戏，并给出解答，生成到sudoku.txt中。
+    }
+    else if (strcmp(argv[1],"-n")==0) {
+        //生成数独游戏这里我们约定不单独使用（或者后面改成默认为-m 1这种），需要后跟参数使用，其类型有:-m, -r,-u
+        string str = argv[2];
+        int n = stoi(str);
+        if (argv[3] == NULL) {
+            cout << "args error!" << endl;
+            return 0;
+        }
+        else if (strcmp(argv[3], "-m") == 0) {
+            //eg. sudoku.exe -n 20 -m 1 表示生成20个简单数独游戏，难度为1。
+            string str = argv[4];
+            int level = stoi(str);
+            sudo.genSudoGame("endGame.txt", n, level);
+            sudo.print_game(n);
+        }
+        else if (strcmp(argv[3], "-r") == 0) {
+            //eg. sudoku.exe -n 20 -r 20~55 表示生成20个挖空数在20~55之间的数独游戏。
+
+        }
+        else if (strcmp(argv[3], "-u") == 0) {
+            //eg. sudoku.exe -n 20 -u 表示生成20个解唯一的数独游戏。
+        }
+    }
+    else {
+        //其他情况直接报参数错误返回。
+        cout << "args error!" << endl;
+        return 0;
+    }
 }
