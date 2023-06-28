@@ -156,7 +156,7 @@ public:
          * 这里默认全排列是从后往前，例如{1,2,3,4,5,6,7,8,9}需要两轮全排列，即{...,8,9}和{...,9,8}
          */
         fstream file;
-        file.open(filepath, ios::out |ios::app);
+        file.open(filepath, ios::out);
         int round = N % 72 == 0 ? N / 72 : N / 72 + 1 ;
         //需要对数组的后几位进行全排列
         int n=1,fac=1;
@@ -224,7 +224,7 @@ public:
         fstream readin;
         fstream writeout;
         readin.open(inpath,ios::in);
-        writeout.open(outpath,ios::out|ios::app);
+        writeout.open(outpath,ios::out);
         for(int n=0;n<gamenum;n++)
         {
             
@@ -312,7 +312,7 @@ public:
         fstream readin;
         fstream writeout;
         readin.open(inpath,ios::in);
-        writeout.open(outpath,ios::out|ios::app);
+        writeout.open(outpath,ios::out);
         while(!readin.eof()){
             _init();
             _readInSudoku(readin);
@@ -343,7 +343,7 @@ public:
         fstream readin;
         fstream writeout;
         readin.open(inpath,ios::in);
-        writeout.open(outpath,ios::out|ios::app);
+        writeout.open(outpath,ios::out);
         for(int n=0;n<gamenum;n++)
         {
             bool flag2=false;
