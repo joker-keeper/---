@@ -355,19 +355,25 @@ public:
         writeout.close();
     }
 
-    void genGameWithHollowsNum(int gamenum,int hollowsnum,bool oneresult=false,string outpath="game.txt",string inpath="endGame.txt")
+    void genGameWithHollowsNum(int gamenum,int hollowsnum_min,int hollowsnum_max,bool oneresult=false,string outpath="game.txt",string inpath="endGame.txt")
     {
         /*
         用挖空数目生成数独游戏的函数
         gamenum:生成的游戏数目
-        hollowsnum:挖空数目，1-64
+        hollowsnum_min:挖空数目下限，1-64
+        hollowsnum_max:挖空数目上限，1-64
         oneresult:是否要求只有一个解
         outpath:生成的游戏存放的文件路径
         inpath:生成游戏所依赖的终局文件路径
         */
-        if(hollowsnum<1||hollowsnum>64)
+        if(hollowsnum_min<1||hollowsnum_max>64)
         {
             cout<<"hollowsnum must be 1-64"<<endl;
+            return;
+        }
+        if(hollowsnum_min>hollowsnum_max)
+        {
+            cout<<"hollowsnum_min must be smaller than hollowsnum_max"<<endl;
             return;
         }
         int rands[64];
@@ -378,6 +384,7 @@ public:
         writeout.open(outpath,ios::out);
         for(int n=0;n<gamenum;n++)
         {
+            int hollowsnum=hollowsnum_min+rand()%(hollowsnum_max-hollowsnum_min+1);
             bool flag2=false;
             int tempboard[9][9],temprow[9][10],tempcol[9][10],tempbox[9][10];
             if(oneresult)
@@ -460,6 +467,6 @@ int main()
 {
 sudokuboard s;
 s.produce_sudo(3);
-s.genGameWithHollowsNum(3,20,true);
+s.genGameWithHollowsNum(3,20,55,true);
 s.solveSUdokus();
 }
