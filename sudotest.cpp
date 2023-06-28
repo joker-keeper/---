@@ -463,10 +463,80 @@ public:
 
 };
 
-int main()
+int main(int argc,char* argv[])
 {
-sudokuboard s;
-s.produce_sudo(3);
-s.genGameWithLevel(3,1,true);
-s.solveSUdokus();
+    sudokuboard sudo;
+    //命令行参数argv[1]有3种类型：-c,-s,-n。
+    if (argv[1] == NULL) {
+        cout << "args error!";
+        return 0;
+    }
+    else if (strcmp(argv[1], "-c") == 0) {
+        //eg. sudoku.exe -c 20 表示生成20个数独终盘
+        string str = argv[2];
+        int n = stoi(str);
+        sudo.produce_sudo(n);
+        cout << "generate soduku,saved in endGame.txt" << endl;
+    }
+    else if (strcmp(argv[1], "-s") == 0) {
+        //eg. sudoku.exe -s game.txt 表示从game.txt读取若干个数独游戏，并给出解答，生成到sudoku.txt中。
+        string path = argv[2] == NULL ? "game.txt" : argv[2];
+        sudo.solveSUdokus(path);
+        cout << "solve game from " <<path<<" save in sudoku.txt"<< endl;
+    }
+    else if (strcmp(argv[1], "-n") == 0) {
+        //生成数独游戏这里我们约定不单独使用（或者后面改成默认为-m 1这种），需要后跟参数使用，其类型有:-m, -r,-u
+        string str = argv[2];
+        //这里没对参数2（即n）做数值检查
+        int n = stoi(str);
+        if (argv[3] == NULL) {
+            cout << "args error!" << endl;
+            return 0;
+        }
+        else if (strcmp(argv[3], "-m") == 0) {
+            //eg. sudoku.exe -n 20 -m 1 表示生成20个简单数独游戏，难度为1。末尾带参数"-u"则表示生成解唯一。
+            string str = argv[4];
+            //同样这里没对level做参数检查
+            int level = stoi(str);
+            if (argv[5] == NULL) {
+                sudo.genGameWithLevel(n, level);
+                cout << "generated " << n << "sudoku game level is " << level << "saved in game.txt" << endl;
+            }
+            else if (strcmp(argv[5], "-u") == 0) {
+                sudo.genGameWithLevel(n, level, true);
+                cout << "generated" << n << "sudoku game level is " << level << "have only one result ,saved in game.txt" << endl;
+            }
+            else {
+                cout << "args error!" << endl;
+                return 0;
+            }
+        }
+        else if (strcmp(argv[3], "-r") == 0) {
+            //eg. sudoku.exe -n 20 -r 20~55 表示生成20个挖空数在20~55之间的数独游戏。末尾带参数"-u"则表示生成解唯一。
+            string str = argv[4];
+            char* p = strtok((char*)str.c_str(), "~");
+            int _min = stoi((string)p);
+            p = strtok(NULL, "~");
+            int _max = stoi((string)p);
+            if (argv[5] == NULL) {
+                sudo.genGameWithHollowsNum(n, _min, _max);
+                cout << "generated" << n << " sudoku games hollownum range from" << _min << " to " << _max << " saved in game.txt" << endl;
+            }
+            else if (strcmp(argv[5], "-u") == 0) {
+                sudo.genGameWithHollowsNum(n, _min, _max, true);
+                cout << "generated" << n << " sudoku games hollownum range from" << _min << " to " << _max << " saved in game.txt" << endl;
+            }
+            
+
+        }
+        else {
+            cout << "args error!" << endl;
+            return 0;
+        }
+    }
+    else {
+        //其他情况直接报参数错误返回。
+        cout << "args error!" << endl;
+        return 0;
+    }
 }
