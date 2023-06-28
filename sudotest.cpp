@@ -175,7 +175,8 @@ public:
         int row_count=1;
         _Perm(first_line,9-n,9);
         //得到行表数组的72种排列，这一段不知道咋改了，很笨。主要是Perm函数实现的不好，orz。
-        _genRowIndex();     
+        _genRowIndex();
+        int count=0;     
         while (round != 0) {
             //生成数独终局
             std::copy(rst[round-1].begin(),rst[round-1].end(),first_line);
@@ -196,6 +197,8 @@ public:
                         endGame[i*9+j]=this->board[row[i-1]][j];
                     }
                 }
+                count++;
+                if(count<=N){
                 for(int i=0;i<9;i++){
                 for(int j=0;j<9;j++){
                     file<<endGame[i*9+j]<<' ';
@@ -203,6 +206,7 @@ public:
                 file<<endl;
                 }
                 file<<endl;
+                }
                 std::copy(row_index[row_count].begin(),row_index[row_count].end(),row);
                 row_count++;
             }
@@ -308,8 +312,10 @@ public:
                 {
                     writeout<<this->board[i][j]<<' ';
                 }
+                if(n!=gamenum-1||i!=8)
                 writeout<<endl;
             }
+            if(n!=gamenum-1)
             writeout<<endl;
         }
         readin.close();
@@ -330,6 +336,10 @@ public:
         while(!readin.eof()){
             _init();
             _readInSudoku(readin);
+            if(readin.eof())
+            {
+                break;
+            }
             _solve(0,0,1);
             for(int i=0;i<9;i++)
             {
@@ -433,8 +443,10 @@ public:
                 {
                     writeout<<this->board[i][j]<<' ';
                 }
+                if(n!=gamenum-1||i!=8)
                 writeout<<endl;
             }
+            if(n!=gamenum-1)
             writeout<<endl;
             
         }
