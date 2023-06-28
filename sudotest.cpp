@@ -467,6 +467,6 @@ int main()
 {
 sudokuboard s;
 s.produce_sudo(3);
-s.genGameWithHollowsNum(3,20,55,true);
+s.genGameWithLevel(3,1,true);
 s.solveSUdokus();
 }
