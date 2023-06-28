@@ -5,7 +5,7 @@
 #include<algorithm>
 #include<vector>
 #include<string>
-
+#include<cstring>
 using namespace std;
 
 int endGame[100000];//存放数独终局，一维数组形式
@@ -149,12 +149,13 @@ public:
         file >> game;
         fstream outfile;
         outfile.open("game.txt", ios::out);
+        srand((unsigned)time(NULL));
         while (n) {
             /*
             难度1就是每行固定挖2个，一共挖去18个生成数独游戏。
             */
             //todo:这里随机数还是有问题，是伪随机，每个棋盘挖空的点都一样。
-            srand((unsigned)time(NULL));
+            
             int x, y;
             for (int i = 0;i < 9;i++) {
                 //生成下标[0,9)之间的随机数
@@ -304,6 +305,7 @@ public:
             }
         }
     }
+
     void print()
     {
         cout << "The sudoku board is" << endl;
@@ -358,11 +360,14 @@ public:
         }
     }
 
-    bool solve(int i, int j)
+    bool solve(int i, int j, int n=0)
     {
+        static int solvewant = 0;
+        if(n){solvewant = n;}
         if (i == 9)
         {
-            return true;
+            solvewant-=1;
+            return solvewant == 0;
         }
         if (j == 9)
         {
@@ -391,6 +396,11 @@ public:
             }
         }
         return false;
+    }
+
+    void genOneResultSudo()
+    {
+        
     }
 };
 
