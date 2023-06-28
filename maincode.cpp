@@ -8,14 +8,14 @@
 #include<cstring>
 using namespace std;
 
-int endGame[100000];//存放数独终局，一维数组形式
+int endGame[81]{};//存放数独终局，一维数组形式
 
 class sudokuboard
 {
-    int board[9][9];
-    int row[9][10];
-    int col[9][10];
-    int box[9][10];
+    int board[9][9]{};
+    int row[9][10]{};
+    int col[9][10]{};
+    int box[9][10]{};
 public:
     vector<vector<int>>rst; //存放数独第一行全排列的结果
     vector<vector<int>>row_index;//行下标的72种组合方式，由于并不多，就直接放进来了。。。
@@ -39,7 +39,7 @@ public:
         }
     }
 
-    void Perm(int* array, int begin, int end, int op=1) {
+    void _Perm(int* array, int begin, int end, int op = 1) {
         /*
          * 递归法实现全排列，旨在将array的[begin,end)进行全排列。
          * 这个实现的复杂度有点高O(n!)，同时可能需要的排列个数并不等于(size-N)!。可以改进一下
@@ -57,325 +57,52 @@ public:
         else {
             for (int i = begin;i < end;i++) {
                 swap(array[i], array[begin]);
-                Perm(array, begin+1, end,op);
+                _Perm(array, begin + 1, end, op);
                 swap(array[i], array[begin]);
             }
         }
     }
 
-    void genRowIndex() {
+    void _genRowIndex() {
         //帮忙改改这里，就是怎么得到那72种变化形式，这里实在迷了，要么优化这里要么优化那个Perm()函数
         int row[8] = { 1,2,3,4,5,6,7,8 };
-        Perm(row,0,2,0);
+        _Perm(row, 0, 2, 0);
         for (int i = 0;i < 2;i++) {
-            std::copy(this->row_index[i].begin(),this->row_index[i].end(),row);
+            std::copy(this->row_index[i].begin(), this->row_index[i].end(), row);
             row_index.erase(row_index.begin());
-            Perm(row,2,5,0);
+            _Perm(row, 2, 5, 0);
         }
         for (int i = 0;i < 12;i++) {
             std::copy(this->row_index[i].begin(), this->row_index[i].end(), row);
             row_index.erase(row_index.begin());
-            Perm(row, 5, 8,0);
+            _Perm(row, 5, 8, 0);
         }
     }
 
-    void produce_sudo(int N) {
-        /*
-         * 生成数独终局的模块。考虑到每一种数独终局在交换2~3、4~6、7~9行后可以得到新的终局(一共72种)。
-         * 我们对传入参数N做判断，看一共需要几轮全排列(第一行全排列后按照规律平移可以得到一种数独终局)
-         * 这里默认全排列是从后往前，例如{1,2,3,4,5,6,7,8,9}需要两轮全排列，即{...,8,9}和{...,9,8}
-         */
-        int round = N % 72 == 0 ? N / 72 : N / 72 + 1 ;
-        //需要对数组的后几位进行全排列
-        int n=1,fac=1;
-        for (int i = 1;i <= 9;i++) {
-            fac *= i;
-            if (fac >= round) {
-                n = i;
-                break;
-            }
-        }
-        int first_line[9] = { 6,8,7,1,2,4,3,9,5 };//数独第一行的一种情况
-        int change[8] = { 3,6,1,4,7,2,5,8 };//这是一个规律，数独第一行分别向左移动change后可以得到一个数独终局
-        int row[8] = { 1,2,3,4,5,6,7,8 };//这里使用行表数组便于后续对数独终局的2~3、4~6、7~9行全排列
-        int count = 0,row_count=1;
-        Perm(first_line,9-n,9);
-        //得到行表数组的72种排列，这一段不知道咋改了，很笨。主要是Perm函数实现的不好，orz。
-        genRowIndex();     
-        while (round != 0) {
-            //生成数独终局
-            std::copy(rst[round-1].begin(),rst[round-1].end(),first_line);
-            for (int j = 0;j < 9;j++)
-                this->board[0][j] = first_line[j];
-            for (int i = 1;i < 9;i++) {
-                for (int j = 0;j < 9;j++) {
-                    this->board[i][j] = first_line[(change[i-1]+j)%9];
-                }
-            }
-            //存放数独终局
-            while (row_count<72) {
-                for (int k = 0;k < 9;k++) {
-                    endGame[k + 81 * count] = first_line[k];
-                }
-                for (int i = 1;i < 9;i++) {
-                    for (int j = 0;j < 9;j++) {
-                        endGame[i*9+j+81*count]=this->board[row[i-1]][j];
-                    }
-                }
-                count++;
-                if (count == N) {
-                    // 将数独终局写入文件中，这里是将生成的所有数独终局以一维数组的形式全部写入一个文件中，如果后面感觉不如一个
-                    // 数独终局写入一个文件，这里也可以改一改
-                    fstream file;
-                    file.open("endGame.txt", ios::out);
-                    for (int i = 0;i < N * 81;i++) {
-                        file << endGame[i];
-                    }
-                    file.close();
-                    return;
-                }
-                std::copy(row_index[row_count].begin(),row_index[row_count].end(),row);
-                row_count++;
-            }
-            row_count = 0;
-            round--;
-        }
-    }
-
-    void genSudoGame1(const char* endGamePath, int n) {
-        ifstream file;
-        file.open(endGamePath, ios::in);
-        char* game = new char[n * 81+1];
-        file >> game;
-        fstream outfile;
-        outfile.open("game.txt", ios::out);
-        srand((unsigned)time(NULL));
-        while (n) {
-            /*
-            难度1就是每行固定挖2个，一共挖去18个生成数独游戏。
-            */
-            //todo:这里随机数还是有问题，是伪随机，每个棋盘挖空的点都一样。
-            
-            int x, y;
-            for (int i = 0;i < 9;i++) {
-                //生成下标[0,9)之间的随机数
-                x = rand() % 9;
-                do {
-                    y = rand() % 9;
-                } while (x == y);
-                //这里由于使用的是int类型作为数独棋盘，因此将挖空部位填充为0。
-                game[(n-1) * 81 + i * 9 + x] = game[(n-1) * 81 + i * 9 + y] = '_';
-            }
-            n--;
-        }
-        outfile << game;
-        outfile.close();
-    }
-    void genSudoGame2(const char* endGamePath, int n) {
-        ifstream file;
-        file.open(endGamePath, ios::in);
-        char* game = new char[n * 81 + 1];
-        file >> game;
-        fstream outfile;
-        outfile.open("game.txt", ios::out);
-        while (n) {
-            /*
-            难度2就是每行固定挖3个，一共挖去27个生成数独游戏。
-            */
-            //todo:这里随机数还是有问题，是伪随机，每个棋盘挖空的点都一样。
-            srand((unsigned)time(NULL));
-            int x,y,z;
-            for (int i = 0;i < 9;i++) {
-                //生成下标[0,9)之间的随机数
-                x = rand() % 9;
-                do {
-                    y = rand() % 9;
-                } while (x == y);
-                do {
-                    z = rand() % 9;
-                } while (x == z || y == z);
-                //这里由于使用的是int类型作为数独棋盘，因此将挖空部位填充为0。
-                game[(n - 1) * 81 + i * 9 + x] = game[(n - 1) * 81 + i * 9 + y] = game[(n - 1) * 81 + i * 9 + z] = '_';
-            }
-            n--;
-        }
-        outfile << game;
-        outfile.close();
-    }
-    void genSudoGame3(const char* endGamePath, int n) {
-        ifstream file;
-        file.open(endGamePath, ios::in);
-        char* game = new char[n * 81 + 1];
-        file >> game;
-        fstream outfile;
-        outfile.open("game.txt", ios::out);
-        while (n) {
-            /*
-            难度3就是每行固定挖4个，一共挖去36个生成数独游戏。
-            */
-            //todo:这里随机数还是有问题，是伪随机，每个棋盘挖空的点都一样。
-            srand((unsigned)time(NULL));
-            int x, y, z, m;
-            for (int i = 0;i < 9;i++) {
-                //生成下标[0,9)之间的随机数
-                x = rand() % 9;
-                do {
-                    y = rand() % 9;
-                } while (x == y);
-                do {
-                    z = rand() % 9;
-                } while (x == z || y == z);
-                do {
-                    m = rand() % 9;
-                } while (x == m || y == m || z == m);
-                //这里由于使用的是int类型作为数独棋盘，因此将挖空部位填充为0。
-                game[(n - 1) * 81 + i * 9 + x] = game[(n - 1) * 81 + i * 9 + y] = game[(n - 1) * 81 + i * 9 + z] = game[(n - 1) * 81 + i * 9 + m] = '_';
-            }
-            n--;
-        }
-        outfile << game;
-        outfile.close();
-    }
-
-    void genSudoGame(const char* endGamePath,int n,int level) {
-        /*
-         * 生成数独游戏,这里游戏难度的主要依据是挖空总数目和每一行上挖空的数量(这里只考虑了行，实现简便一些，但没考虑列和宫，因此可能出现一些极端情况)
-         * endGamePath:存放数独终局的文件路径
-         * n:需要生成数独游戏的数量
-         * level:数独游戏的难度:1~3
-         */
-        switch (level){
-            case 1:
-                genSudoGame1(endGamePath,n);
-                break;
-            case 2:
-                genSudoGame2(endGamePath, n);
-                break;
-            case 3:
-                genSudoGame3(endGamePath, n);
-                break;
-            default:
-                cout << "args level error!" << endl;
-        }   
-    }
-
-    void genSudoGameWithHollowNum(const char* endGamePath,int n,int _min, int _max) {
-        /*
-         * 生成n个挖空数在_min~_max之间的数独游戏并存放到文件中。这里没有行/列/宫的挖空数要求，只有总体要求。
-         * endGamePath:存放数独终局的文件路径
-         * n:生成数独游戏的数目
-         * _min:挖空数最小值
-         * _max:挖空数最大值
-         */
-        ifstream file;
-        file.open(endGamePath, ios::in);
-        char* game = new char[n * 81 + 1];
-        file >> game;
-        fstream outfile;
-        outfile.open("game.txt", ios::out);
-        srand((unsigned)time(NULL));
-        for (int k = 0;k < n;k++) {
-            int hollow_num = (rand() % (_max - _min + 1)) + _min;
-            for (int i = 0;i < hollow_num;i++) {
-                int x = rand() % 81;
-                while (game[k * 81 + x] == '_') {
-                    x = rand() % 81;
-                }
-                game[k * 81 + x] = '_';
-            }
-        }
-        outfile << game;
-        outfile.close();
-    }
-
-    void input()
+    void _init()
     {
-        cout << "Enter the sudoku board" << endl;
-        for (int i = 0;i < 9;i++)
-        {
-            for (int j = 0;j < 9;j++)
-            {
-                cin >> board[i][j];
-                if (board[i][j] != 0)
-                {
-                    row[i][board[i][j]] = 1;
-                    col[j][board[i][j]] = 1;
-                    box[(i / 3) * 3 + (j / 3)][board[i][j]] = 1;
-                }
-            }
-        }
+        memset(row, 0, sizeof(row));
+        memset(col, 0, sizeof(col));
+        memset(box, 0, sizeof(box));
+        memset(board, 0, sizeof(board));
     }
 
-    void print()
-    {
-        cout << "The sudoku board is" << endl;
-        for (int i = 0;i < 9;i++)
-        {
-            for (int j = 0;j < 9;j++)
-            {
-                cout << board[i][j] << " ";
-            }
-            cout << endl;
-        }
-    }
-
-    void print_endGame(int n) {
-        /*
-        打印数独终局
-        */
-        /*for (int i = 0;i < 20 * 81;i++) {
-            if (i % 9 == 0)
-                cout << endl;
-            if (i % 81 == 0)
-                cout << endl;
-            cout << endGame[i] << " ";
-        }*/
-        ifstream file;
-        file.open("endGame.txt", ios::in);
-        char buf[100000] = { 0 };
-        file >> buf;
-        for (int i = 0;i < n * 81;i++) {
-            if (i % 9 == 0)
-                cout << endl;
-            if (i % 81 == 0)
-                cout << endl;
-            cout << buf[i] << " ";
-        }
-    }
-
-    void print_game(int n) {
-        /*
-        打印数独游戏棋盘
-        */
-        ifstream file;
-        file.open("game.txt", ios::in);
-        char buf[100000] = { 0 };
-        file >> buf;
-        for (int i = 0;i < n * 81;i++) {
-            if (i % 9 == 0)
-                cout << endl;
-            if (i % 81 == 0)
-                cout << endl;
-            cout << buf[i] << " ";
-        }
-    }
-
-    bool solve(int i, int j, int n=0)
+    bool _solve(int i, int j, int n = 0)
     {
         static int solvewant = 0;
-        if(n){solvewant = n;}
+        if (n) { solvewant = n; }
         if (i == 9)
         {
-            solvewant-=1;
+            solvewant -= 1;
             return solvewant == 0;
         }
         if (j == 9)
         {
-            return solve(i + 1, 0);
+            return _solve(i + 1, 0);
         }
         if (board[i][j] != 0)
         {
-            return solve(i, j + 1);
+            return _solve(i, j + 1);
         }
         for (int k = 1;k <= 9;k++)
         {
@@ -385,7 +112,7 @@ public:
                 row[i][k] = 1;
                 col[j][k] = 1;
                 box[(i / 3) * 3 + (j / 3)][k] = 1;
-                if (solve(i, j + 1))
+                if (_solve(i, j + 1))
                 {
                     return true;
                 }
@@ -398,51 +125,412 @@ public:
         return false;
     }
 
-    void genOneResultSudo()
+    void _readInSudoku(fstream& f)
     {
-        
+        for (int i = 0;i < 9;i++) {
+            for (int j = 0;j < 9;j++) {
+                int num;
+                f >> num;
+                this->board[i][j] = num;
+                this->row[i][num] = 1;
+                this->col[j][num] = 1;
+                this->box[(i / 3) * 3 + (j / 3)][num] = 1;
+            }
+        }
+
     }
+
+    bool _isOneResult()
+    {
+        int tempboard[9][9];
+        memcpy(tempboard, this->board, sizeof(this->board));
+        bool result = _solve(0, 0, 2);
+        memcpy(this->board, tempboard, sizeof(tempboard));
+        return !result;
+    }
+
+    void produce_sudo(int N, string filepath = "endGame.txt") {
+        /*
+         * 生成数独终局的模块。考虑到每一种数独终局在交换2~3、4~6、7~9行后可以得到新的终局(一共72种)。
+         * 我们对传入参数N做判断，看一共需要几轮全排列(第一行全排列后按照规律平移可以得到一种数独终局)
+         * 这里默认全排列是从后往前，例如{1,2,3,4,5,6,7,8,9}需要两轮全排列，即{...,8,9}和{...,9,8}
+         * N:生成的终局数目
+         * filepath:生成的终局存放的文件路径
+         */
+        fstream file;
+        file.open(filepath, ios::out);
+        int round = N % 72 == 0 ? N / 72 : N / 72 + 1;
+        //需要对数组的后几位进行全排列
+        int n = 1, fac = 1;
+        for (int i = 1;i <= 9;i++) {
+            fac *= i;
+            if (fac >= round) {
+                n = i;
+                break;
+            }
+        }
+        int first_line[9] = { 6,8,7,1,2,4,3,9,5 };//数独第一行的一种情况
+        int change[8] = { 3,6,1,4,7,2,5,8 };//这是一个规律，数独第一行分别向左移动change后可以得到一个数独终局
+        int row[8] = { 1,2,3,4,5,6,7,8 };//这里使用行表数组便于后续对数独终局的2~3、4~6、7~9行全排列
+        int row_count = 1;
+        _Perm(first_line, 9 - n, 9);
+        //得到行表数组的72种排列，这一段不知道咋改了，很笨。主要是Perm函数实现的不好，orz。
+        _genRowIndex();
+        int count = 0;
+        while (round != 0) {
+            //生成数独终局
+            std::copy(rst[round - 1].begin(), rst[round - 1].end(), first_line);
+            for (int j = 0;j < 9;j++)
+                this->board[0][j] = first_line[j];
+            for (int i = 1;i < 9;i++) {
+                for (int j = 0;j < 9;j++) {
+                    this->board[i][j] = first_line[(change[i - 1] + j) % 9];
+                }
+            }
+            //存放数独终局
+            while (row_count < 72) {
+                for (int k = 0;k < 9;k++) {
+                    endGame[k] = first_line[k];
+                }
+                for (int i = 1;i < 9;i++) {
+                    for (int j = 0;j < 9;j++) {
+                        endGame[i * 9 + j] = this->board[row[i - 1]][j];
+                    }
+                }
+                count++;
+                if (count <= N) {
+                    for (int i = 0;i < 9;i++) {
+                        for (int j = 0;j < 9;j++) {
+                            file << endGame[i * 9 + j] << ' ';
+                        }
+                        file << endl;
+                    }
+                    file << endl;
+                }
+                std::copy(row_index[row_count].begin(), row_index[row_count].end(), row);
+                row_count++;
+            }
+            row_count = 0;
+            round--;
+        }
+        file.close();
+    }
+
+    void genGameWithLevel(int gamenum, int gamelevel, bool oneresult = false, string outpath = "game.txt", string inpath = "endGame.txt")
+    {
+        /*
+        用等级生成数独游戏的函数，等级123代表每行挖走的格子数，等级1最简单，等级3最难分别挖走234格
+        gamenum:生成的游戏数目
+        gamelevel:游戏等级
+        oneresult:是否要求只有一个解
+        outpath:生成的游戏存放的文件路径
+        inpath:生成游戏所依赖的终局文件路径
+        */
+        if (gamelevel < 1 || gamelevel>3)
+        {
+            cout << "gamelevel must be 1,2 or 3" << endl;
+            return;
+        }
+        gamelevel += 1;
+        int rands[4];
+        srand((unsigned)time(NULL));
+        fstream readin;
+        fstream writeout;
+        readin.open(inpath, ios::in);
+        writeout.open(outpath, ios::out);
+        for (int n = 0;n < gamenum;n++)
+        {
+
+            bool flag2 = false;
+            int tempboard[9][9], temprow[9][10], tempcol[9][10], tempbox[9][10];
+            if (oneresult)
+            {
+                flag2 = true;
+                _init();
+            }
+            _readInSudoku(readin);
+            if (oneresult)
+            {
+                memcpy(tempboard, this->board, sizeof(this->board));
+                memcpy(temprow, this->row, sizeof(this->row));
+                memcpy(tempcol, this->col, sizeof(this->col));
+                memcpy(tempbox, this->box, sizeof(this->box));
+            }
+            do {
+                //按等级挖空
+                for (int i = 0;i < 9;i++)
+                {
+                    for (int l = 0;l < gamelevel;l++)
+                    {
+                        bool flag = false;
+                        while (!flag)
+                        {
+                            flag = true;
+                            rands[l] = rand() % 9;
+                            for (int l2 = l - 1;l2 >= 0;l2--)
+                            {
+                                if (rands[l] == rands[l2])
+                                {
+                                    flag = false;
+                                    break;
+                                }
+                            }
+                        }
+                        this->board[i][rands[l]] = 0;
+                        this->row[i][rands[l]] = 0;
+                        this->col[rands[l]][i] = 0;
+                        this->box[i / 3 * 3 + rands[l] / 3][i % 3 * 3 + rands[l] % 3] = 0;
+                    }
+                }
+
+                //判断是否有唯一解
+                if (oneresult)
+                {
+                    bool is_one_result = _isOneResult();
+                    if (is_one_result)
+                    {
+                        flag2 = false;
+                        break;
+                    }
+                    else
+                    {
+                        memcpy(this->board, tempboard, sizeof(this->board));
+                        memcpy(this->row, temprow, sizeof(this->row));
+                        memcpy(this->col, tempcol, sizeof(this->col));
+                        memcpy(this->box, tempbox, sizeof(this->box));
+                    }
+                }
+
+            } while (flag2);
+
+
+            //写入
+            for (int i = 0;i < 9;i++)
+            {
+                for (int j = 0;j < 9;j++)
+                {
+                    writeout << this->board[i][j] << ' ';
+                }
+                if (n != gamenum - 1 || i != 8)
+                    writeout << endl;
+            }
+            if (n != gamenum - 1)
+                writeout << endl;
+        }
+        readin.close();
+        writeout.close();
+    }
+
+    void solveSUdokus(string inpath = "game.txt", string outpath = "sudoku.txt")
+    {
+        /*
+        解数独的函数
+        inpath:数独游戏文件路径
+        outpath:数独解文件路径
+        */
+        fstream readin;
+        fstream writeout;
+        readin.open(inpath, ios::in);
+        writeout.open(outpath, ios::out);
+        while (!readin.eof()) {
+            _init();
+            _readInSudoku(readin);
+            if (readin.eof())
+            {
+                break;
+            }
+            _solve(0, 0, 1);
+            for (int i = 0;i < 9;i++)
+            {
+                for (int j = 0;j < 9;j++)
+                {
+                    writeout << this->board[i][j] << ' ';
+                }
+                writeout << endl;
+            }
+            writeout << endl;
+        }
+        readin.close();
+        writeout.close();
+    }
+
+    void genGameWithHollowsNum(int gamenum, int hollowsnum_min, int hollowsnum_max, bool oneresult = false, string outpath = "game.txt", string inpath = "endGame.txt")
+    {
+        /*
+        用挖空数目生成数独游戏的函数
+        gamenum:生成的游戏数目
+        hollowsnum_min:挖空数目下限，1-64
+        hollowsnum_max:挖空数目上限，1-64
+        oneresult:是否要求只有一个解
+        outpath:生成的游戏存放的文件路径
+        inpath:生成游戏所依赖的终局文件路径
+        */
+        if (hollowsnum_min < 1 || hollowsnum_max>64)
+        {
+            cout << "hollowsnum must be 1-64" << endl;
+            return;
+        }
+        if (hollowsnum_min > hollowsnum_max)
+        {
+            cout << "hollowsnum_min must be smaller than hollowsnum_max" << endl;
+            return;
+        }
+        int rands[64];
+        srand((unsigned)time(NULL));
+        fstream readin;
+        fstream writeout;
+        readin.open(inpath, ios::in);
+        writeout.open(outpath, ios::out);
+        for (int n = 0;n < gamenum;n++)
+        {
+            int hollowsnum = hollowsnum_min + rand() % (hollowsnum_max - hollowsnum_min + 1);
+            bool flag2 = false;
+            int tempboard[9][9], temprow[9][10], tempcol[9][10], tempbox[9][10];
+            if (oneresult)
+            {
+                flag2 = true;
+                _init();
+            }
+            _readInSudoku(readin);
+            if (oneresult)
+            {
+                memcpy(tempboard, this->board, sizeof(this->board));
+                memcpy(temprow, this->row, sizeof(this->row));
+                memcpy(tempcol, this->col, sizeof(this->col));
+                memcpy(tempbox, this->box, sizeof(this->box));
+            }
+            do {
+                //挖空之
+                for (int l = 0;l < hollowsnum;l++)
+                {
+                    bool flag = false;
+                    while (!flag)
+                    {
+                        flag = true;
+                        rands[l] = rand() % 81;
+                        for (int l2 = l - 1;l2 >= 0;l2--)
+                        {
+                            if (rands[l] == rands[l2])
+                            {
+                                flag = false;
+                                break;
+                            }
+                        }
+                    }
+                    this->board[rands[l] / 9][rands[l] % 9] = 0;
+                    this->row[rands[l] / 9][rands[l] % 9] = 0;
+                    this->col[rands[l] % 9][rands[l] / 9] = 0;
+                    this->box[rands[l] / 27 * 3 + rands[l] % 9 / 3][rands[l] % 9 % 3] = 0;
+                }
+
+                //判断是否有唯一解
+                if (oneresult)
+                {
+                    bool is_one_result = _isOneResult();
+                    if (is_one_result)
+                    {
+                        flag2 = false;
+                        break;
+                    }
+                    else
+                    {
+                        memcpy(this->board, tempboard, sizeof(this->board));
+                        memcpy(this->row, temprow, sizeof(this->row));
+                        memcpy(this->col, tempcol, sizeof(this->col));
+                        memcpy(this->box, tempbox, sizeof(this->box));
+                    }
+                }
+
+            } while (flag2);
+            for (int i = 0;i < 9;i++)
+            {
+                for (int j = 0;j < 9;j++)
+                {
+                    writeout << this->board[i][j] << ' ';
+                }
+                if (n != gamenum - 1 || i != 8)
+                    writeout << endl;
+            }
+            if (n != gamenum - 1)
+                writeout << endl;
+
+        }
+        readin.close();
+        writeout.close();
+    }
+
 };
 
-int main(int argc,char* argv[]) {
+
+int main(int argc,char* argv[])
+{
     sudokuboard sudo;
     //命令行参数argv[1]有3种类型：-c,-s,-n。
     if (argv[1] == NULL) {
         cout << "args error!";
         return 0;
     }
-    else if (strcmp(argv[1],"-c")==0) {
+    else if (strcmp(argv[1], "-c") == 0) {
         //eg. sudoku.exe -c 20 表示生成20个数独终盘
         string str = argv[2];
         int n = stoi(str);
-        sudo.genRowIndex();
         sudo.produce_sudo(n);
-        sudo.print_endGame(n);
+        cout << "数独终盘已生成，默认存放在endGame.txt文件中" << endl;
     }
-    else if (strcmp(argv[1],"-s")==0) {
+    else if (strcmp(argv[1], "-s") == 0) {
         //eg. sudoku.exe -s game.txt 表示从game.txt读取若干个数独游戏，并给出解答，生成到sudoku.txt中。
+        string path = argv[2] == NULL ? "game.txt" : argv[2];
+        sudo.solveSUdokus(path);
+        cout << "数独游戏已解答，答案默认存放在sudoku.txt中" << endl;
     }
-    else if (strcmp(argv[1],"-n")==0) {
+    else if (strcmp(argv[1], "-n") == 0) {
         //生成数独游戏这里我们约定不单独使用（或者后面改成默认为-m 1这种），需要后跟参数使用，其类型有:-m, -r,-u
         string str = argv[2];
+        //这里没对参数2（即n）做数值检查
         int n = stoi(str);
         if (argv[3] == NULL) {
             cout << "args error!" << endl;
             return 0;
         }
         else if (strcmp(argv[3], "-m") == 0) {
-            //eg. sudoku.exe -n 20 -m 1 表示生成20个简单数独游戏，难度为1。
+            //eg. sudoku.exe -n 20 -m 1 表示生成20个简单数独游戏，难度为1。末尾带参数"-u"则表示生成解唯一。
             string str = argv[4];
+            //同样这里没对level做参数检查
             int level = stoi(str);
-            sudo.genSudoGame("endGame.txt", n, level);
-            sudo.print_game(n);
+            if (argv[5] == NULL) {
+                sudo.genGameWithLevel(n, level);
+                cout << "已生成" << n << "个难度为:" << level << "的数独游戏，默认存放在game.txt中" << endl;
+            }
+            else if (strcmp(argv[5], "-u") == 0) {
+                sudo.genGameWithLevel(n, level, true);
+                cout << "已生成" << n << "个难度为:" << level << "的唯一解数独游戏，默认存放在game.txt中" << endl;
+            }
+            else {
+                cout << "args error!" << endl;
+                return 0;
+            }
         }
         else if (strcmp(argv[3], "-r") == 0) {
-            //eg. sudoku.exe -n 20 -r 20~55 表示生成20个挖空数在20~55之间的数独游戏。
+            //eg. sudoku.exe -n 20 -r 20~55 表示生成20个挖空数在20~55之间的数独游戏。末尾带参数"-u"则表示生成解唯一。
+            string str = argv[4];
+            char* p = strtok((char*)str.c_str(), "~");
+            int _min = stoi((string)p);
+            p = strtok(NULL, "~");
+            int _max = stoi((string)p);
+            if (argv[5] == NULL) {
+                sudo.genGameWithHollowsNum(n, _min, _max);
+                cout << "已生成" << n << "个挖空数范围在:" << _min << "~" << _max << "之间的数独游戏，默认存放在game.txt中" << endl;
+            }
+            else if (strcmp(argv[5], "-u") == 0) {
+                sudo.genGameWithHollowsNum(n, _min, _max, true);
+                cout << "已生成" << n << "个挖空数范围在:" << _min << "~" << _max << "之间的唯一解数独游戏，默认存放在game.txt中" << endl;
+            }
+            
 
         }
-        else if (strcmp(argv[3], "-u") == 0) {
-            //eg. sudoku.exe -n 20 -u 表示生成20个解唯一的数独游戏。
+        else {
+            cout << "args error!" << endl;
+            return 0;
         }
     }
     else {
