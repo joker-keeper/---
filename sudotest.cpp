@@ -154,6 +154,8 @@ public:
          * 生成数独终局的模块。考虑到每一种数独终局在交换2~3、4~6、7~9行后可以得到新的终局(一共72种)。
          * 我们对传入参数N做判断，看一共需要几轮全排列(第一行全排列后按照规律平移可以得到一种数独终局)
          * 这里默认全排列是从后往前，例如{1,2,3,4,5,6,7,8,9}需要两轮全排列，即{...,8,9}和{...,9,8}
+         * N:生成的终局数目
+         * filepath:生成的终局存放的文件路径
          */
         fstream file;
         file.open(filepath, ios::out);
@@ -210,9 +212,16 @@ public:
         file.close();
     }
 
-
     void genGameWithLevel(int gamenum,int gamelevel,bool oneresult=false,string outpath="game.txt",string inpath="endGame.txt")
     {
+        /*
+        用等级生成数独游戏的函数，等级123代表每行挖走的格子数，等级1最简单，等级3最难分别挖走234格
+        gamenum:生成的游戏数目
+        gamelevel:游戏等级
+        oneresult:是否要求只有一个解
+        outpath:生成的游戏存放的文件路径
+        inpath:生成游戏所依赖的终局文件路径
+        */
         if(gamelevel<1||gamelevel>3)
         {
             cout<<"gamelevel must be 1,2 or 3"<<endl;
@@ -309,6 +318,11 @@ public:
 
     void solveSUdokus(string inpath="game.txt",string outpath="sudoku.txt")
     {
+        /*
+        解数独的函数
+        inpath:数独游戏文件路径
+        outpath:数独解文件路径
+        */
         fstream readin;
         fstream writeout;
         readin.open(inpath,ios::in);
@@ -333,6 +347,14 @@ public:
 
     void genGameWithHollowsNum(int gamenum,int hollowsnum,bool oneresult=false,string outpath="game.txt",string inpath="endGame.txt")
     {
+        /*
+        用挖空数目生成数独游戏的函数
+        gamenum:生成的游戏数目
+        hollowsnum:挖空数目，1-64
+        oneresult:是否要求只有一个解
+        outpath:生成的游戏存放的文件路径
+        inpath:生成游戏所依赖的终局文件路径
+        */
         if(hollowsnum<1||hollowsnum>64)
         {
             cout<<"hollowsnum must be 1-64"<<endl;
