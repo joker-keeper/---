@@ -131,11 +131,14 @@ public:
         for(int j=0;j<9;j++){
             int num;
             f>>num;
+            if(f.eof()){return;}
+            cout<<num<<" ";
             this->board[i][j]=num;
             this->row[i][num]=1;
             this->col[j][num]=1;
             this->box[(i/3)*3+(j/3)][num]=1;
         }
+        cout<<endl;
     }
 
 }
@@ -333,13 +336,14 @@ public:
         fstream writeout;
         readin.open(inpath,ios::in);
         writeout.open(outpath,ios::out);
-        while(!readin.eof()){
+        while(true){
             _init();
             _readInSudoku(readin);
             if(readin.eof())
             {
                 break;
             }
+
             _solve(0,0,1);
             for(int i=0;i<9;i++)
             {
