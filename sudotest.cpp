@@ -104,6 +104,8 @@ class sudokuboard{
             int num;
             f >> num;
             if (f.eof()) {
+                if (i != 0 || j != 0)
+                    cout << "数独文件格式错误" << endl;
                 return;}
             this->board[i][j] = num;
             this->row[i][num] = 1;
@@ -426,6 +428,10 @@ int main(int argc, char* argv[]) {
         // eg. sudoku.exe -c 20 表示生成20个数独终盘
         string str = argv[2];
         int n = stoi(str);
+        if (n < 1 || n > 1000000) {
+            cout << "n must be 1-1000000" << endl;
+            return 0;
+        }
         sudo.produce_sudo(n);
         cout << "generate soduku,saved in endGame.txt" << endl;
     } else if (strcmp(argv[1], "-s") == 0) {
@@ -440,6 +446,10 @@ int main(int argc, char* argv[]) {
         string str = argv[2];
         // 这里没对参数2（即n）做数值检查
         int n = stoi(str);
+        if (n < 1 || n > 10000) {
+            cout << "n must be 1-10000" << endl;
+            return 0;
+        }
         if (argv[3] == NULL) {
             cout << "args error!" << endl;
             return 0;
