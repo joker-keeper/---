@@ -107,6 +107,8 @@ class sudokuboard{
                 if (i != 0 || j != 0)
                     cout << "数独文件格式错误" << endl;
                 return;}
+                if (num < 0 || num > 9)
+                    cout << "数独文件格式错误" << endl;
             this->board[i][j] = num;
             this->row[i][num] = 1;
             this->col[j][num] = 1;
@@ -333,14 +335,14 @@ class sudokuboard{
         /*
         用挖空数目生成数独游戏的函数
         gamenum:生成的游戏数目
-        hollowsnum_min:挖空数目下限，1-64
-        hollowsnum_max:挖空数目上限，1-64
+        hollowsnum_min:挖空数目下限，20-55
+        hollowsnum_max:挖空数目上限，20-55
         oneresult:是否要求只有一个解
         outpath:生成的游戏存放的文件路径
         inpath:生成游戏所依赖的终局文件路径
         */
-        if (hollowsnum_min < 1 || hollowsnum_max > 64) {
-            cout << "hollowsnum must be 1-64" << endl;
+        if (hollowsnum_min < 20 || hollowsnum_max > 55) {
+            cout << "hollowsnum must be 20-55" << endl;
             return;
         }
         if (hollowsnum_min > hollowsnum_max) {
