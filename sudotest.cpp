@@ -47,12 +47,14 @@ class sudokuboard{
         int row[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
         _Perm(row, 0, 2, 0);
         for (int i = 0; i < 2; i++) {
-            std::copy(this->row_index[i].begin(), this->row_index[i].end(), row);
+            std::copy(this->row_index[i].begin(),
+            this->row_index[i].end(), row);
             row_index.erase(row_index.begin());
             _Perm(row, 2, 5, 0);
         }
         for (int i = 0; i < 12; i++) {
-            std::copy(this->row_index[i].begin(), this->row_index[i].end(), row);
+            std::copy(this->row_index[i].begin(),
+            this->row_index[i].end(), row);
             row_index.erase(row_index.begin());
             _Perm(row, 5, 8, 0);
         }
@@ -189,7 +191,8 @@ class sudokuboard{
                 }
                 file << endl;
                 }
-                std::copy(row_index[row_count].begin(), row_index[row_count].end(), row);
+                std::copy(row_index[row_count].begin(),
+                row_index[row_count].end(), row);
                 row_count++;
             }
             row_count = 0;
@@ -386,7 +389,7 @@ class sudokuboard{
                     while (!flag) {
                     flag = true;
                     rands[l] = rand()%81;
-                    for(int l2 = l-1; l2 >= 0; l2--) {
+                    for (int l2 = l-1; l2 >= 0; l2--) {
                         if (rands[l] == rands[l2]) {
                             flag = false;
                             break;
@@ -504,10 +507,9 @@ int main(int argc, char* argv[]) {
             }
 
         } else if (strcmp(argv[3], "-u") == 0) {
-            sudo.genGameWithLevel(n, 1,false);
+            sudo.genGameWithLevel(n, 1, false);
             cout << "generated" << n << " sudoku games level is 1 have only one result saved in game.txt" << endl;
-        }
-        else {
+        } else {
             cout << "args error!" << endl;
             return 0;
         }
