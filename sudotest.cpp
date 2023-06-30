@@ -104,11 +104,13 @@ class sudokuboard{
             int num;
             f >> num;
             if (f.eof()) {
-                if (i != 0 || j != 0)
-                    cout << "数独文件格式错误" << endl;
+                if (i != 0 || j != 0) {
+                    cout << "wrong file" << endl;}
                 return;}
-                if (num < 0 || num > 9)
-                    cout << "数独文件格式错误" << endl;
+                if (num < 0 || num > 9) {
+                    cout << "wrong num, sudoku must range from 1~9,and 0 means blank" << endl;
+                    return;}
+
             this->board[i][j] = num;
             this->row[i][num] = 1;
             this->col[j][num] = 1;
@@ -194,6 +196,7 @@ class sudokuboard{
             round--;
         }
         file.close();
+        // cout << "generate" << N << "endGame" << "saved in" << filepath << endl;
     }
 
     void genGameWithLevel(int gamenum, int gamelevel, bool oneresult = false,
@@ -282,6 +285,7 @@ class sudokuboard{
         }
         readin.close();
         writeout.close();
+        // cout << "generate" << gamenum << "games" << "saved in" << outpath << "with level" << gamelevel-1 << endl;
     }
 
         sudokuboard() {
@@ -328,6 +332,7 @@ class sudokuboard{
         }
         readin.close();
         writeout.close();
+        // cout << "solved sudokus" << "from" << inpath << "saved in" << outpath << endl;
     }
 
     void genGameWithHollowsNum(int gamenum, int hollowsnum_min, int hollowsnum_max,
@@ -417,6 +422,8 @@ class sudokuboard{
         }
         readin.close();
         writeout.close();
+        // cout << "generated" << gamenum << "sudoku games" << "holowsnum from "
+        // << hollowsnum_min << "-" << hollowsnum_max << "saved in" << outpath << endl;
     }
 };
 
@@ -453,7 +460,8 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         if (argv[3] == NULL) {
-            cout << "args error!" << endl;
+            sudo.genGameWithLevel(n, 1);
+            cout << "generated " << n << "sudoku game" << endl;
             return 0;
         } else if (strcmp(argv[3], "-m") == 0) {
             /* eg. sudoku.exe -n 20 -m 1 
@@ -489,10 +497,14 @@ int main(int argc, char* argv[]) {
             } else if (strcmp(argv[5], "-u") == 0) {
                 sudo.genGameWithHollowsNum(n, _min, _max, true);
                 cout << "generated" << n << " sudoku games hollownum range from"
-                << _min << " to " << _max << " saved in game.txt" << endl;
+                << _min << " to " << _max << "have only one result saved in game.txt" << endl;
             }
 
-        } else {
+        } else if (strcmp(argv[3], "-u") == 0) {
+            sudo.genGameWithLevel(n, 1,false);
+            cout << "generated" << n << " sudoku games level is 1 have only one result saved in game.txt" << endl;
+        }
+        else {
             cout << "args error!" << endl;
             return 0;
         }
