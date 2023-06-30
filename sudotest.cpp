@@ -310,9 +310,12 @@ class sudokuboard{
         inpath:数独游戏文件路径
         outpath:数独解文件路径
         */
-        fstream readin;
+        fstream readin(inpath, ios::in);
+        if (!readin) {
+            cout << "can't open file" << inpath << endl;
+            return;
+        }
         fstream writeout;
-        readin.open(inpath, ios::in);
         writeout.open(outpath, ios::out);
         while (true) {
             _init();
